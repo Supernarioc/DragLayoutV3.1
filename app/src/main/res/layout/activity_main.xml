@@ -1,0 +1,73 @@
+<com.example.nario.draglayout.DragLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dl"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/img_frame_background" >
+
+    <LinearLayout
+        android:id="@+id/fl_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="40dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="50dp" >
+
+        <Button
+            android:id="@+id/profile_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Profile"/>
+
+    </LinearLayout>
+
+    <com.example.nario.draglayout.MainContentLayout
+        android:id="@+id/mainContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/tab_bg"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:id="@+id/topbar"
+            android:layout_width="fill_parent"
+            android:layout_height="55dp"
+            android:background="@color/topbar_bg" >
+
+            <ImageView
+                android:id="@+id/topbar_left_button"
+                android:layout_width="38dip"
+                android:layout_height="38dip"
+                android:layout_gravity="left|center"
+                android:scaleType="fitXY"
+                android:src="@drawable/drawer_press"
+                android:layout_alignTop="@+id/textView"
+                android:layout_alignParentStart="true" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Whisper"
+                android:textSize="33sp"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:id="@+id/textView" />
+        </RelativeLayout>
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/pager_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/topbar" />
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tablayout"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@id/pager_view"
+            android:background="#9cdbfa">
+        </android.support.design.widget.TabLayout>
+
+    </com.example.nario.draglayout.MainContentLayout>
+
+</com.example.nario.draglayout.DragLayout>
