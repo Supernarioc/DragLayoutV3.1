@@ -3,6 +3,7 @@ package com.example.nario.draglayout.Adapter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
+import android.text.util.Linkify;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -122,6 +123,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.BaseAdapter>{
             super(view);
             ic_user = (ImageView) itemView.findViewById(R.id.ic_user);
             tv = (TextView) itemView.findViewById(R.id.tv);
+            Linkify.addLinks(tv,Linkify.EMAIL_ADDRESSES|Linkify.WEB_URLS|Linkify.PHONE_NUMBERS);
         }
 
         @Override
@@ -141,6 +143,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.BaseAdapter>{
             super(view);
             ic_user = (ImageView) itemView.findViewById(R.id.ic_user);
             tv = (TextView) itemView.findViewById(R.id.tv);
+            Linkify.addLinks(tv,Linkify.EMAIL_ADDRESSES|Linkify.WEB_URLS|Linkify.PHONE_NUMBERS);
 
         }
 

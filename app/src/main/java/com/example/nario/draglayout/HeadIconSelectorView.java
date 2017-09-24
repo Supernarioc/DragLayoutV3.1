@@ -307,8 +307,8 @@ public class HeadIconSelectorView extends RelativeLayout implements
 
 	}
 
-	private float minVelocityY = 100f;// 10个像素每秒
-	private float minDistanceY = 100f;// 100个像素
+	private float minVelocityY = 100f;// 10pics/s
+	private float minDistanceY = 100f;// 100pics/s
 
 	// 用户按下触摸屏、快速移动后松开,由1个MotionEvent ACTION_DOWN,
 	// 多个ACTION_MOVE, 1个ACTION_UP触发

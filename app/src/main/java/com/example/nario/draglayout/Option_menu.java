@@ -38,7 +38,8 @@ public class Option_menu extends LinearLayout{
 
             @Override
             public void onClick(View v) {
-
+                if(null!=onHeadIconClickListener)
+                onHeadIconClickListener.onClick(FROM_CAMERA);
             }
         });
         imageGroup.setOnClickListener(new OnClickListener() {

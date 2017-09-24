@@ -13,13 +13,14 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="70dp"
         android:layout_toEndOf="@+id/ic_user"
-        android:background="#ff000f"
+        android:background="#c1b8b8"
         android:gravity="center_vertical"
         android:paddingBottom="6dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:paddingTop="6dp"
         android:text="testing!"
+        android:autoLink="phone|email|web"
         android:textSize="16sp" />
 
         <ImageView

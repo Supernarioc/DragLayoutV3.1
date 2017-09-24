@@ -11,7 +11,7 @@ public class KeyBoardUtils {
     public static void hideKeyBoard(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0); // 强制隐藏键盘
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0); // force to close sorftkeyboard
     }
 
     public static void showKeyBoard(Context context, View view) {
