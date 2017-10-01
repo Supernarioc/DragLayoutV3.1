@@ -17,14 +17,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity android:name=".Activity.MainActivity">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity.ChatActivity" android:label="chat">
-        </activity>
+        <activity android:name=".Activity.ChatActivity" android:label="chat"/>
+        <activity android:name=".FriendList.FriendsListActivity" android:label="friends"/>
     </application>
 
 </manifest>

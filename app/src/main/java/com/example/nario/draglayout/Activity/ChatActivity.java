@@ -1,15 +1,22 @@
 package com.example.nario.draglayout.Activity;
 
+import android.Manifest;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -24,6 +31,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -31,7 +39,6 @@ import android.widget.Toast;
 
 import com.example.nario.draglayout.Adapter.ChatAdapter;
 import com.example.nario.draglayout.ChatModel;
-import com.example.nario.draglayout.FileSaveUtil;
 import com.example.nario.draglayout.HeadIconSelectorView;
 import com.example.nario.draglayout.ItemModel;
 import com.example.nario.draglayout.KeyBoardUtils;
@@ -64,16 +71,20 @@ public class ChatActivity extends AppCompatActivity {
     private ArrayList<ItemModel> data = new ArrayList<>();
     public ListView mess_lv;
     public Screen_info screen_info;
-    private static int REQUEST_THUMBNAIL = 11;//scaled image
     private static int REQUEST_ORIGINAL = 22;//original image
+    private static int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 0;//original image
     public static final int MEDIA_TYPE_IMAGE = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chat_main);
+
+        requestPermission();
+
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
         screen_info = new Screen_info(metrics.widthPixels, metrics.heightPixels);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         mess_lv = (ListView) findViewById(R.id.mess_lv);
@@ -127,12 +138,6 @@ public class ChatActivity extends AppCompatActivity {
                 switch (from) {
                     case Option_menu.FROM_CAMERA:
                         Intent intent1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        File picDirect = new File(Environment.getExternalStorageDirectory(),"NewImages");
-                        picDirect.mkdirs();
-                        String picname = "newiamge.jpg";
-                        File imagefile = new File(picDirect,picname);
-                        Uri picuri = Uri.fromFile(imagefile);
-                        intent1.putExtra(MediaStore.EXTRA_OUTPUT,picuri);
                         startActivityForResult(intent1, REQUEST_ORIGINAL);
                         break;
                     case Option_menu.FROM_GALLERY:
@@ -142,6 +147,7 @@ public class ChatActivity extends AppCompatActivity {
                             String status = Environment.getExternalStorageState();
                             if (status.equals(Environment.MEDIA_MOUNTED)) {// sd card
                                 Intent intent = new Intent();
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
                                     intent.setAction(Intent.ACTION_GET_CONTENT);
                                 } else {
@@ -173,6 +179,8 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
         chatName = (TextView) findViewById(R.id.Chat_name);
+        String name = getIntent().getStringExtra("chatfragment");
+        chatName.setText(name);
         back_but = (ImageButton) findViewById(R.id.back_but);
         back_but.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,21 +233,12 @@ public class ChatActivity extends AppCompatActivity {
         //take photo: 1
         //choose photo: 2
         if (res == RESULT_OK) {
-
             if (req == 22) {
-                Bitmap bitmap = (Bitmap)data.getExtras().get("data");
-                ArrayList<ItemModel> datas = new ArrayList<>();
-                ChatModel model = new ChatModel();
-                model.setBitmap(bitmap);
-                datas.add(new ItemModel(ItemModel.PHOTO, model));
-                adapter.addAll(datas);
-                adapter.notifyDataSetChanged();
-                recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-                et.setText("");
+                Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+                test_send_c(bitmap);
             }
             if (req == 2) {
                 Uri uri = data.getData();
-                String path = uri.getPath();
 //              send_img(uri);
                 test_send_g(uri);
             }
@@ -254,7 +253,7 @@ public class ChatActivity extends AppCompatActivity {
         if (content == null || content.isEmpty()) {
         } else {
             model.setContent(content);
-            data.add(new ItemModel(ItemModel.CHAT_A, model));
+            data.add(new ItemModel(ItemModel.CHAT_B, model));
             adapter.addAll(data);
             adapter.notifyDataSetChanged();
             recyclerView.scrollToPosition(adapter.getItemCount() - 1);
@@ -279,10 +278,7 @@ public class ChatActivity extends AppCompatActivity {
         try {
             Bitmap bit;
             bit = BitmapFactory.decodeStream(getContentResolver().openInputStream(pic_uri));
-            if (bit.getWidth() > screen_info.getWid() / 2) {
-//                decodeSampledBitmapFromResource(bit,);
-            }
-            model.setBitmap(bit);
+            model.setBitmap(scaled(getRealPathFromURI(pic_uri)));
 
             data.add(new ItemModel(ItemModel.PHOTO, model));
             adapter.addAll(data);
@@ -312,83 +308,74 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-    private File getOutputMediaFile(int type) {
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
+    private Bitmap scaled(String pathname) {
+        int targetW = 300;
+        int targetH = 300;
 
-        File mediaStorageDir = null;
-        try {
-            // This location works best if you want the created images to be
-            // shared
-            // between applications and persist after your app has been
-            // uninstalled.
-            mediaStorageDir = new File(
-                    Environment
-                            .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                    "MyCameraApp");
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(pathname, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
 
-            Log.d("log msg", "Successfully created mediaStorageDir: "
-                    + mediaStorageDir);
+        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d("log msg", "Error in Creating mediaStorageDir: "
-                    + mediaStorageDir);
-        }
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
 
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                // <uses-permission
-                // android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-                Log.d("log msg",
-                        "failed to create directory, check if you have the WRITE_EXTERNAL_STORAGE permission");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
-                .format(new Date());
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                    + "IMG_" + timeStamp + ".jpg");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
+        Bitmap bitmap = BitmapFactory.decodeFile(pathname, bmOptions);
+        return bitmap;
     }
 
-    public Bitmap decodeSampledBitmapFromResource(Resources res, int resId, int reqWidth, int reqHeight) {
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(res, resId, options);
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeResource(res, resId, options);
+    public String getRealPathFromURI(Uri contentUri) {
+        String wholeID = DocumentsContract.getDocumentId(contentUri);
+
+        String id = wholeID.split(":")[1];
+
+        String[] column = {MediaStore.Images.Media.DATA};
+
+        String sel = MediaStore.Images.Media._ID + "=?";
+
+        Cursor cursor = getContentResolver().
+                query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        column, sel, new String[]{id}, null);
+
+        String filePath = "";
+
+        int columnIndex = cursor.getColumnIndex(column[0]);
+
+        if (cursor.moveToFirst()) {
+            filePath = cursor.getString(columnIndex);
+        }
+        cursor.close();
+        return filePath;
     }
 
-    public int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-        if (height > reqHeight || width > reqWidth) {
-            final int heightRatio = Math.round((float) height / (float) reqHeight);
+    public void requestPermission() {
+        if (ContextCompat.checkSelfPermission(ChatActivity.this,
+                Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(ChatActivity.this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE},
+                    WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
+        }
+    }
 
-            final int widthRatio = Math.round((float) width / (float) reqWidth);
-            inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
-            // Anything more than 2x the requested pixels we'll sample down
-            final float totalPixels = width * height;
-            // further
-            final float totalReqPixelsCap = reqWidth * reqHeight * 2;
-            while (totalPixels / (inSampleSize * inSampleSize) > totalReqPixelsCap) {
-                inSampleSize++;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        doNext(requestCode, grantResults);
+    }
+
+    private void doNext(int requestCode, int[] grantResults) {
+        if (requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            } else {
+                Toast.makeText(getApplicationContext(), "deny", Toast.LENGTH_SHORT).show();
             }
         }
-        return inSampleSize;
     }
 
     public void showToast(String text) {
@@ -401,15 +388,4 @@ public class ChatActivity extends AppCompatActivity {
         mToast.show();
     }
 
-//    private String getSavePicPath() {
-//        final String dir = FileSaveUtil.SD_CARD_PATH + "image_data/";
-//        try {
-//            FileSaveUtil.createSDDirectory(dir);
-//        } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//        String fileName = String.valueOf(System.currentTimeMillis() + ".png");
-//        return dir + fileName;
-//    }
 }

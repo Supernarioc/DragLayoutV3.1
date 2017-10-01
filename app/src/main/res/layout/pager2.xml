@@ -11,5 +11,10 @@
         android:layout_height="wrap_content"
         android:textSize="25sp" 
         android:text="Pager Two"/>
+    <Button
+        android:id="@+id/friends"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Load"/>
 
 </LinearLayout>

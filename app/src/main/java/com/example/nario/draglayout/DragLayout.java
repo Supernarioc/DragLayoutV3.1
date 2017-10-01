@@ -38,8 +38,7 @@ public class DragLayout extends FrameLayout {
 	
 	public DragLayout(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		//ViewDragHelper.create(forParent, sensitivity, cb);
-		//对应参数：父布局、敏感度、回调
+
 		mDragHelper = ViewDragHelper.create(this, mCallBack);
 		mDetectorCompat = new GestureDetectorCompat(getContext(),
 				mGestureListener);
@@ -51,8 +50,7 @@ public class DragLayout extends FrameLayout {
 	public void setDrag(boolean isDrag) {
 		this.isDrag = isDrag;
 		if(isDrag){
-			//这里有个Bug,当isDrag从false变为true是，mDragHelper的mCallBack在
-			//首次滑动时不响应，再次滑动才响应，自能在此调用下，让mDragHelper恢复下状态
+
 			mDragHelper.abort();
 		}
 	}
@@ -79,30 +77,24 @@ public class DragLayout extends FrameLayout {
 		public void onEdgeDragStarted(int edgeFlags, int pointerId) {
 			 mDragHelper.captureChildView(mMainContent, pointerId); 
 		};
-		// 决定child是否可被拖拽。返回true则进行拖拽。
 		@Override
 		public boolean tryCaptureView(View child, int pointerId) {
 			return child == mMainContent || child == mLeftContent;
 		}
 
-		// 当capturedChild被拖拽时
 		@Override
 		public void onViewCaptured(View capturedChild, int activePointerId) {
 			super.onViewCaptured(capturedChild, activePointerId);
 		}
 
-		// 横向拖拽的范围，大于0时可拖拽，等于0无法拖拽
-		// 此方法只用于计算如view释放速度，敏感度等
-		// 实际拖拽范围由clampViewPositionHorizontal方法设置
+
 		@Override
 		public int getViewHorizontalDragRange(View child) {
 			return mDragRange;
 		}
 
-		// 此处设置view的拖拽范围。（实际移动还未发生）
 		@Override
 		public int clampViewPositionHorizontal(View child, int left, int dx) {
-			// 拖动前oldLeft + 变化量dx == left
 			if (mMainLeft + dx < 0) {
 				return 0;
 			} else if (mMainLeft + dx > mDragRange) {
@@ -111,25 +103,20 @@ public class DragLayout extends FrameLayout {
 			return left;
 		}
 
-		// 决定了当View位置改变时，希望发生的其他事情。（此时移动已经发生）
-		// 高频实时的调用，在这里设置左右面板的联动
 		@Override
 		public void onViewPositionChanged(View changedView, int left, int top,
 				int dx, int dy) {
-			//如果拖动的是主面板
 			if (changedView == mMainContent) {
 				mMainLeft = left;
 			} else {
 				mMainLeft += dx;
 			}
 
-			// 进行值的修正
 			if (mMainLeft < 0) {
 				mMainLeft = 0;
 			} else if (mMainLeft > mDragRange) {
 				mMainLeft = mDragRange;
 			}
-			// 如果拖拽的是左面板，强制在指定位置绘制Content
 			if (changedView == mLeftContent) {
 				layoutContent();
 			}
@@ -138,7 +125,6 @@ public class DragLayout extends FrameLayout {
 
 		}
 
-		// View被释放时,侧滑打开或恢复
 		@Override
 		public void onViewReleased(View releasedChild, float xvel, float yvel) {
 			if (xvel > 0) {
@@ -151,7 +137,6 @@ public class DragLayout extends FrameLayout {
 
 		}
 
-		//当拖拽状态改变的时，IDLE/DRAGGING/SETTLING
 		@Override
 		public void onViewDragStateChanged(int state) {
 			super.onViewDragStateChanged(state);
@@ -164,9 +149,6 @@ public class DragLayout extends FrameLayout {
 		mLeftContent.layout(0, 0, mWidth, mHeight);
 	}
 
-	/**
-	 * 每次更新都会调用 根据当前执行的位置计算百分比percent
-	 */
 	protected void dispatchDragEvent(int mainLeft) {
 		float percent = mainLeft / (float) mDragRange;
 		animViews(percent);
@@ -228,12 +210,8 @@ public class DragLayout extends FrameLayout {
 		this.mStatus = mStatus;
 	}
 	
-	/**
-	 * 伴随动画：
-	 * @param percent
-	 */
+
 	private void animViews(float percent) {
-		// 主面板：缩放
 		float inverse = 1 - percent * 0.2f;
 		ViewHelper.setScaleX(mMainContent, inverse);
 		ViewHelper.setScaleY(mMainContent, inverse);
@@ -243,7 +221,6 @@ public class DragLayout extends FrameLayout {
 		ViewHelper.setTranslationX(mLeftContent, -mWidth / 2.0f + mWidth / 2.0f
 				* percent);
 		ViewHelper.setAlpha(mLeftContent, percent);
-		// 背景：颜色渐变
 		getBackground().setColorFilter(
 				evaluate(percent, Color.BLACK, Color.TRANSPARENT),
 				PorterDuff.Mode.SRC_OVER);
@@ -271,7 +248,6 @@ public class DragLayout extends FrameLayout {
 	@Override
 	public boolean onInterceptTouchEvent(android.view.MotionEvent ev) {
 		boolean onTouchEvent = mDetectorCompat.onTouchEvent(ev);
-		//将Touch事件传递给ViewDragHelper
 		return mDragHelper.shouldInterceptTouchEvent(ev) & onTouchEvent;
 	};
 	
@@ -279,7 +255,6 @@ public class DragLayout extends FrameLayout {
 	public boolean onTouchEvent(MotionEvent event) {
 
 		try {
-			//将Touch事件传递给ViewDragHelper
 			mDragHelper.processTouchEvent(event);
 		} catch (Exception e) {
 		}
@@ -297,9 +272,7 @@ public class DragLayout extends FrameLayout {
 	public void close(boolean isSmooth) {
 		mMainLeft = 0;
 		if (isSmooth) {
-			// 执行动画，返回true代表有未完成的动画, 需要继续执行
 			if (mDragHelper.smoothSlideViewTo(mMainContent, mMainLeft, 0)) {
-				// 注意：参数传递根ViewGroup
 				ViewCompat.postInvalidateOnAnimation(this);
 			}
 		} else {
@@ -320,7 +293,6 @@ public class DragLayout extends FrameLayout {
 
 	@Override
 	public void computeScroll() {
-		// 高频率调用，决定是否有下一个变动等待执行
 		if (mDragHelper.continueSettling(true)) {
 			ViewCompat.postInvalidateOnAnimation(this);
 		}
@@ -336,21 +308,16 @@ public class DragLayout extends FrameLayout {
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-		//拿到宽高
 		mWidth = getMeasuredWidth();
 		mHeight = getMeasuredHeight();
-		//设置拖动范围
 		mDragRange = (int) (mWidth * 0.6f);
 	}
 
-	/**
-	 * 填充结束时获得两个子布局的引用
-	 */
+
 	@Override
 	protected void onFinishInflate() {
 
 		int childCount = getChildCount();
-		// 必要的检验
 		if (childCount < 2) {
 			throw new IllegalStateException(
 					"You need two childrens in your content");

@@ -66,19 +66,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         profile = (Button) findViewById(R.id.profile_button);
 
 
-//        listView = (ListView)findViewById(R.id.listview);
-//        List<Map<String, Object>> list=getData();
-//        listView.setAdapter(new ListAdapter(this,list));
-//
-//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                info getObject = mlistInfo.get(position);
-//                String infoTitle = getObject.getTitle().toString();    //获取信息标题
-//                String infoDetails = getObject.getDetails().toString();    //获取信息详情
-//                Toast.makeText(, "信息:" + infoTitle + " " + infoDetails, Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
         profile.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -111,10 +98,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         mTabLayout.setupWithViewPager(mViewPager);
         mTabLayout.setSelectedTabIndicatorHeight(0);
         for (int i = 0; i < mTitles.size(); i++) {
-            //获得到对应位置的Tab
             TabLayout.Tab itemTab = mTabLayout.getTabAt(i);
             if (itemTab != null) {
-                //设置自定义的标题
                 itemTab.setCustomView(R.layout.item_tab);
                 TextView textView = (TextView) itemTab.getCustomView().findViewById(R.id.tv_name);
                 textView.setText(mTitles.get(i));
