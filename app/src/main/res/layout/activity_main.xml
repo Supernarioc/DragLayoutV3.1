@@ -14,11 +14,18 @@
         android:paddingLeft="10dp"
         android:paddingTop="50dp" >
 
-        <Button
+        <ImageView
             android:id="@+id/profile_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Profile"/>
+            android:src="@mipmap/ic_launcher"/>
+        <TextView
+            android:id="@+id/slide_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textSize="30dip"
+            android:textColor="#ffffff"/>
 
     </LinearLayout>
 

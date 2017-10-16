@@ -1,18 +1,25 @@
 package com.example.nario.draglayout.Fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
-import com.example.nario.draglayout.FriendList.FriendsListActivity;
+import com.example.nario.draglayout.Activity.People_info;
+import com.example.nario.draglayout.DBHelper;
 import com.example.nario.draglayout.FriendList.HintSideBar;
 import com.example.nario.draglayout.FriendList.SideBar;
 import com.example.nario.draglayout.FriendList.User;
@@ -23,28 +30,34 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PagerFragment2 extends Fragment implements SideBar.OnChooseLetterChangedListener{
-	public Activity mActivity;
-	public LayoutInflater inflater;
+public class PagerFragment2 extends Fragment implements SideBar.OnChooseLetterChangedListener {
+    public Activity mActivity;
+    public LayoutInflater inflater;
     private List<User> userList;
-
+    private DBHelper dbHelper;
     private UserAdapter adapter;
-
+    private HintSideBar hintSideBar;
+    private RecyclerView rv_userList;
     private LinearLayoutManager manager;
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    private boolean allowed_refresh = false;
 
-		mActivity = getActivity();
-		inflater = (LayoutInflater) mActivity
-				.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-	}
-	
-	@Override
-	public View onCreateView(LayoutInflater inflater,ViewGroup container, Bundle savedInstanceState) {
-		View view = initView();
-        HintSideBar hintSideBar = (HintSideBar)view.findViewById(R.id.hintSideBar);
-        RecyclerView rv_userList = (RecyclerView) view.findViewById(R.id.rv_userList);
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mActivity = getActivity();
+        inflater = (LayoutInflater) mActivity
+                .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+    }
+
+    @Override
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = initView();
+
+        dbHelper = new DBHelper(getActivity());
+        //creat database
+        hintSideBar = (HintSideBar) view.findViewById(R.id.hintSideBar);
+        rv_userList = (RecyclerView) view.findViewById(R.id.rv_userList);
         hintSideBar.setOnChooseLetterChangedListener(this);
         manager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         rv_userList.setLayoutManager(manager);
@@ -52,63 +65,71 @@ public class PagerFragment2 extends Fragment implements SideBar.OnChooseLetterCh
         adapter = new UserAdapter(getActivity());
         initData();
         adapter.setData(userList);
+        adapter.setOnItemClickLitener(new UserAdapter.mOnItemClickLitener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Toast.makeText(getActivity(), position + " click", Toast.LENGTH_SHORT).show();
+                allowed_refresh =true;
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), People_info.class);
+                intent.putExtra("name", userList.get(position).getUserName());
+                intent.putExtra("info", userList.get(position).getInfo());
+                intent.putExtra("sex", userList.get(position).getSex());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onItemLongClick(View view, int position) {
+                Toast.makeText(getActivity(), position + " long click", Toast.LENGTH_SHORT).show();
+                final User p = userList.get(position);
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setMessage("Are you sure you want to delete this person？").setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dbHelper.delete(p.getId());
+                        initData();
+                        adapter.refresh(userList);
+                    }
+                }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create().show();
+
+                dbHelper.close();
+            }
+        });
         rv_userList.setAdapter(adapter);
-		return view;
-	}
-
-	private View initView() {
-		View localView = inflater.inflate(R.layout.friends_main, null);
-
-		return localView;
-	}
-    public void initData() {
-        User user1 = new User("A", "12345678");
-        User user2 = new User("b", "12345678");
-        User user3 = new User("c", "12345678");
-        User user4 = new User("d", "12345678");
-        User user5 = new User("u", "12345678");
-        User user6 = new User("Y", "12345678");
-        User user7 = new User("C", "12345678");
-        User user15 = new User("A", "12345678");
-        User user16 = new User("#", "12345678");
-        User user17 = new User("@", "12345678");
-        User user18 = new User("s", "12345678");
-        User user19 = new User("89", "12345678");
-        User user20 = new User("09", "12345678");
-        User user21 = new User("oiu", "12345678");
-        User user22 = new User("youj", "12345678");
-        User user23 = new User("peter", "12345678");
-        User user24 = new User("sdf", "12345678");
-        User user25 = new User("cxv", "12345678");
-        User user26 = new User("BA", "12345678");
-        userList.add(user1);
-        userList.add(user2);
-        userList.add(user3);
-        userList.add(user4);
-        userList.add(user5);
-        userList.add(user6);
-        userList.add(user7);
-        userList.add(user15);
-        userList.add(user16);
-        userList.add(user17);
-        userList.add(user18);
-        userList.add(user19);
-        userList.add(user20);
-        userList.add(user21);
-        userList.add(user22);
-        userList.add(user23);
-        userList.add(user24);
-        userList.add(user25);
-        userList.add(user26);
-        userList.add(user20);
-        userList.add(user21);
-        userList.add(user22);
-        userList.add(user23);
-        userList.add(user24);
-        userList.add(user25);
-        userList.add(user26);
-        Collections.sort(userList);
+        return view;
     }
+
+    private View initView() {
+        View localView = inflater.inflate(R.layout.friends_main, null);
+
+        return localView;
+    }
+
+    public void initData() {
+        userList = new ArrayList<>();
+        Cursor c = dbHelper.query();
+        while (c.moveToNext()) {
+            int _id = c.getInt(c.getColumnIndex("_id"));
+            String name = c.getString(c.getColumnIndex("name"));
+            String sex = c.getString(c.getColumnIndex("sex"));
+            String info = c.getString(c.getColumnIndex("info"));
+            if (!name.equals("")) {
+                User user = new User(name, sex, info);
+                user.setId(_id);
+                userList.add(user);
+            }
+        }
+
+        Collections.sort(userList);
+        dbHelper.close();
+    }
+
     @Override
     public void onChooseLetter(String s) {
         int i = adapter.getFirstPositionByChar(s.charAt(0));
@@ -121,6 +142,13 @@ public class PagerFragment2 extends Fragment implements SideBar.OnChooseLetterCh
     @Override
     public void onNoChooseLetter() {
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        initData();
+        adapter.refresh(userList);
     }
 
 }

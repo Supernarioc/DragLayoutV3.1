@@ -48,7 +48,6 @@ public class ListAdapter extends BaseAdapter {
         info infos=null;
         if(convertView==null){
             infos=new info();
-            //获得组件，实例化组件
             convertView=layoutInflater.inflate(R.layout.chat_item, null);
             infos.avatar=(ImageView)convertView.findViewById(R.id.img);
             infos.title=(TextView)convertView.findViewById(R.id.name);
@@ -57,7 +56,6 @@ public class ListAdapter extends BaseAdapter {
         }else{
             infos=(info)convertView.getTag();
         }
-        //绑定数据
         infos.avatar.setBackgroundResource((Integer)data.get(position).get("image"));
         infos.title.setText((String)data.get(position).get("title"));
         infos.details.setText((String)data.get(position).get("info"));

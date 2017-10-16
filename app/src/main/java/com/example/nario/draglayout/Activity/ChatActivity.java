@@ -7,8 +7,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -47,12 +50,15 @@ import com.example.nario.draglayout.R;
 import com.example.nario.draglayout.Screen_info;
 import com.example.nario.draglayout.TestData;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 public class ChatActivity extends AppCompatActivity {
@@ -67,13 +73,16 @@ public class ChatActivity extends AppCompatActivity {
     private Toast mToast;
     private Option_menu option_menu;
     private Uri uri;
+    private int userId=1;//sender 1 reciver 2
     private boolean CAN_WRITE_EXTERNAL_STORAGE = true;
     private ArrayList<ItemModel> data = new ArrayList<>();
     public ListView mess_lv;
     public Screen_info screen_info;
+    SQLiteOpenHelper openHelper;
     private static int REQUEST_ORIGINAL = 22;//original image
     private static int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 0;//original image
     public static final int MEDIA_TYPE_IMAGE = 3;
+    private static final String IMAGE_DIRECTORY = "/Whisper";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,16 +174,6 @@ public class ChatActivity extends AppCompatActivity {
                             }
                         }
                         break;
-//                    case option_menu.FROM_PHRASE:
-//                        if (mess_lv.getVisibility() == View.GONE) {
-//                            tbbv.setVisibility(View.GONE);
-//                            emoji.setBackgroundResource(R.mipmap.emoji);
-//                            voiceIv.setBackgroundResource(R.mipmap.voice_btn_normal);
-//                            mess_lv.setVisibility(View.VISIBLE);
-//                            KeyBoardUtils.hideKeyBoard(BaseActivity.this,
-//                                    mEditTextContent);
-//                            mess_iv.setBackgroundResource(R.mipmap.chatting_setmode_keyboard_btn_normal);
-//                        }
                 }
             }
         });
@@ -230,12 +229,13 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int req, int res, Intent data) {
         //request code
-        //take photo: 1
+        //take photo: 22
         //choose photo: 2
         if (res == RESULT_OK) {
             if (req == 22) {
-                Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                test_send_c(bitmap);
+                Bitmap bit = (Bitmap) data.getExtras().get("data");
+                test_send_c(bit);
+                saveImage(bit);
             }
             if (req == 2) {
                 Uri uri = data.getData();
@@ -376,6 +376,41 @@ public class ChatActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "deny", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    public String saveImage(Bitmap myBitmap) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+        File wallpaperDirectory = new File(
+                Environment.getExternalStorageDirectory() + IMAGE_DIRECTORY);
+        if (!wallpaperDirectory.exists()) {
+            wallpaperDirectory.mkdirs();
+        }
+
+        try {
+            File f = new File(wallpaperDirectory, Calendar.getInstance()
+                    .getTimeInMillis() + ".jpg");
+            f.createNewFile();
+            FileOutputStream fo = new FileOutputStream(f);
+            fo.write(bytes.toByteArray());
+            MediaScannerConnection.scanFile(this,
+                    new String[]{f.getPath()},
+                    new String[]{"image/jpeg"}, null);
+            fo.close();
+            Log.d("TAG", "File Saved::--->" + f.getAbsolutePath());
+
+            return f.getAbsolutePath();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        return "";
+    }
+    @Override
+    public boolean onKeyDown(int keycode, KeyEvent event){
+        if(keycode==KeyEvent.KEYCODE_BACK&&event.getRepeatCount()==0){
+            return true;
+        }
+        return super.onKeyDown(keycode, event);
     }
 
     public void showToast(String text) {

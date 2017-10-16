@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -14,10 +16,8 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,7 +30,6 @@ import com.example.nario.draglayout.Fragment.PagerFragment3;
 import com.example.nario.draglayout.Fragment.PagerFragment4;
 import com.example.nario.draglayout.MainContentLayout;
 import com.example.nario.draglayout.R;
-import com.example.nario.draglayout.Screen_info;
 import com.nineoldandroids.view.ViewHelper;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
@@ -39,40 +38,31 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private TabLayout mTabLayout;
     private boolean isFocus = false;
     private ImageView topbarLeftImage;
+    private ImageView profile_b;
     private ViewPager mViewPager;
     private List<Fragment> fragmentList;
     private MainContentLayout mMainContent;
     private FragmentAdapter adapter;
     private List<String> mTitles;
-    private Button profile;
     private int[] mImgs = new int[]{R.drawable.selector_bg, R.drawable.selector_bg_attach, R.drawable.selector_bg_info,
             R.drawable.selector_tab_message};
     private static Context context;
-//    private List<info> mlistInfo = new ArrayList<info>();
-//    private ListView listView;
-    public static Context getMainContext(){
+
+    public static Context getMainContext() {
         return MainActivity.context;
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        MainActivity.context = getApplicationContext();
         mDragLayout = (DragLayout) findViewById(R.id.dl);
         topbarLeftImage = (ImageView) findViewById(R.id.topbar_left_button);
         mViewPager = (ViewPager) findViewById(R.id.pager_view);
         mMainContent = (MainContentLayout) findViewById(R.id.mainContent);
         mTabLayout = (TabLayout) findViewById(R.id.tablayout);
-        profile = (Button) findViewById(R.id.profile_button);
-
-
-        profile.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-
+        profile_b = (ImageView) findViewById(R.id.profile_button);
+        profile_b.setOnClickListener(this);
         mMainContent.setDragLayout(mDragLayout);
 
         fragmentList = new ArrayList<Fragment>();
@@ -194,17 +184,21 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             case R.id.topbar_left_button:
                 mDragLayout.open();
                 break;
+            case R.id.profile_button:
+                Intent intent = new Intent(this, Profile.class);
+                startActivity(intent);
+                break;
         }
     }
 
-    public List<Map<String,Object>> getData() {
-        List<Map<String, Object>> list=new ArrayList<>();
+    public List<Map<String, Object>> getData() {
+        List<Map<String, Object>> list = new ArrayList<>();
         int i = 0;
         while (i < 10) {
-            Map<String, Object> map=new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<String, Object>();
             map.put("image", R.drawable.avatar);
-            map.put("title", "name"+i);
-            map.put("info", "last message"+i);
+            map.put("title", "name" + i);
+            map.put("info", "last message" + i);
             list.add(map);
             i++;
         }

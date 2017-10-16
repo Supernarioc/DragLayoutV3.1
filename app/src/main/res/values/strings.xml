@@ -5,4 +5,15 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
+    <string-array name="gender_item">
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+
+    <string-array name="lan_item">
+        <item>English</item>
+        <item>Other available language</item>
+    </string-array>
+
+
 </resources>

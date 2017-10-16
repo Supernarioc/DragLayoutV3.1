@@ -26,7 +26,7 @@ public class HeadIconSelectorView extends RelativeLayout implements
 	private LinearLayout galleryLl;
 	private LinearLayout cancelLl;
 
-	private GestureDetector gestureDetector; // 手势检测器
+	private GestureDetector gestureDetector;
 	private boolean isAnimationing = false;
 	private OnHeadIconClickListener onHeadIconClickListener;
 	public static final int FROM_CAMERA = 2;
@@ -309,17 +309,9 @@ public class HeadIconSelectorView extends RelativeLayout implements
 
 	private float minVelocityY = 100f;// 10pics/s
 	private float minDistanceY = 100f;// 100pics/s
-
-	// 用户按下触摸屏、快速移动后松开,由1个MotionEvent ACTION_DOWN,
-	// 多个ACTION_MOVE, 1个ACTION_UP触发
-	// e1：第1个ACTION_DOWN MotionEvent
-	// e2：最后一个ACTION_MOVE MotionEvent
-	// velocityX：X轴上的移动速度，像素/秒
-	// velocityY：Y轴上的移动速度，像素/秒
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
                            float velocityY) {
-		// 手势从上到下且移动速度较快
 		if (e2.getY() - e1.getY() > minDistanceY && velocityY > minVelocityY) {
 			cancel();
 		}

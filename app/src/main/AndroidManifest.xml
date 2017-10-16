@@ -2,6 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.nario.draglayout">
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission
+        android:required="true"
+        android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission
+        android:required="true"
+        android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission
+        android:required="true"
+        android:name="android.permission.INTERNET"/>
     <supports-screens
         android:smallScreens="true"
         android:normalScreens="true"
@@ -23,7 +32,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".Activity.ChatActivity" android:label="chat"/>
-        <activity android:name=".FriendList.FriendsListActivity" android:label="friends"/>
+        <activity android:name=".Activity.Profile" android:label="profile"/>
+        <activity android:name=".Activity.People_info" android:label="people_info"/>
     </application>
 
 </manifest>
